@@ -1,0 +1,433 @@
+// your btree implementation goes here
+
+// Constructor
+template <typename T> 
+btree<T>::btree(size_t maxSize) {
+  maxNodeElems_ = maxSize;
+////  std::cout << "Constructing Tree" << endl;
+  //root_ = new Node(maxSize);
+  root_ = new Node();
+////   std::cout << "root_ = new Node(maxSize);" << endl;
+  //root_->values_[0] = 6;
+  //root_->elems_.insert(6);
+  //root_->value_ = 7;
+}
+
+// Destructor
+template <typename T> 
+btree<T>::~btree() {
+////  std::cout << "Delete Root" << endl;
+  if (root_ != NULL) {
+    delete root_;
+  }
+}
+
+// Copy Constructor
+template <typename T> 
+btree<T>::btree(const btree<T> &original) : maxNodeElems_(original.maxNodeElems_) { //, root_(original.root_) { }
+////  std::cout << "Copy Constructor" << std::endl;
+  root_ = nullptr;
+  root_ = new Node();
+  //: maxNodeElems_(original.maxNodeElems_)
+  *root_ = *(original.root_);
+}
+
+// Move Constructor
+template <typename T> 
+btree<T>::btree(btree<T> &&original) : maxNodeElems_(original.maxNodeElems_) { //, root_(std::move(original.root_)) {}
+////  std::cout << "Move Constructor" << std::endl;
+  root_ = original.root_;
+  original.root_ = nullptr;
+}
+
+// Copy assignment
+template <typename T> 
+btree<T>& btree<T>::operator=(const btree<T> &rhs) {
+////  std::cout << "Copy Assignment" << std::endl;
+  if (this != &rhs) {
+    maxNodeElems_ = rhs.maxNodeElems_;
+    delete root_;
+    root_ = nullptr;
+    root_ = new Node();
+    //root_ = rhs.root_;
+    *root_ = *(rhs.root_);
+  }
+  return *this;
+}
+
+// Move assignment
+template <typename T> 
+btree<T>& btree<T>::operator=(btree<T> &&rhs) {
+////  std::cout << "Move Assignment" << std::endl;
+  if (this != &rhs) {
+    maxNodeElems_ = rhs.maxNodeElems_;
+    rhs.maxNodeElems_ = 0;
+    delete root_;
+    root_ = rhs.root_;
+    rhs.root_ = nullptr;
+  }
+  return *this;
+}
+
+// Output Operator
+template <typename T> 
+std::ostream& operator<<(std::ostream& os, const btree<T> &tree) {
+
+  //std::vector<btree<T>::Node> nodes;
+  typedef typename btree<T>::Node Node;
+  //Node * node = tree.root_;
+  std::vector<Node*> nodes;
+  nodes.push_back(tree.root_);
+  while (!nodes.empty()) {
+    nodes.at(0)->printNode(os);
+    for (size_t i = 0; i <= nodes.at(0)->size(); ++i) {
+      if (nodes.at(0)->childExists(i)) {
+        nodes.push_back(nodes.at(0)->getChild(i));
+      }
+    }
+    nodes.erase(nodes.begin());
+    
+  }
+  os << endl;
+  //tree.root_->printNode(os);
+
+
+  //nodes.push_back(tree.root_->children_);
+/*
+  while (!nodes.empty()) {
+    nodes.at(0).printNode();
+      
+  }
+  */
+/*
+  for (auto it = tree.root_.begin(); it != tree.root_.end(); ++it) {
+    os << *it << " ";
+  }
+*/
+/*
+  for (unsigned int i = 0; i < tree.maxNodeElems_; ++i) {
+    os << tree.root_->values_[i];
+  }
+  os << endl;
+*/
+  //os << tree.root_->printNode() << endl;
+  return os;
+}
+
+// begin
+template <typename T> 
+btree_iterator<T> btree<T>::begin() const {
+
+  Node *node = root_;
+  while (node->childExists(0)) {
+    node = node->getChild(0);
+  }
+  
+  //std::cout << "begin() created()" << endl;
+  return btree_iterator<T>(node);////////////////////NOOOOOO
+}
+/*
+// begin
+template <typename T> 
+btree_iterator<T> btree<T>::begin() const {
+
+  Node *node = root_;
+  while (node->childExists(0)) {
+    node = node->getChild(0);
+  }
+  std::cout << "begin() created()" << endl;
+  return btree_iterator<T>(node);////////////////////NOOOOOO
+}
+*/
+/*
+// cbegin
+template <typename T> 
+const_btree_iterator<T> btree<T>::cbegin() const {
+
+  Node *node = root_;
+  while (node->childExists(0)) {
+    node = node->getChild(0);
+  }
+  std::cout << "begin() created()" << endl;
+  return const_btree_iterator<T>(node);////////////////////NOOOOOO
+}
+*/
+
+/*
+// cbegin
+template <typename T> 
+const_btree_iterator<T> btree<T>::cbegin() const {
+
+  //return const_btree_iterator<T>(begin());////////////////////NOOOOOO
+  return const_btree_iterator<T>(begin());
+}
+*/
+
+/*
+// end
+template <typename T> 
+btree_iterator<T> btree<T>::end() const {
+  return btree_iterator<T>();
+}
+*/
+
+// end
+template <typename T> 
+btree_iterator<T> btree<T>::end() const {
+
+  Node *node = root_;
+  while (node->childExists(node->size())) {
+    node = node->getChild(node->size());
+  }
+  // pos is outside range,
+  return btree_iterator<T>(node, node->size());////////////////////NOOOOOO
+
+}
+
+/*
+// end
+template <typename T> 
+btree_iterator<T> btree<T>::end() const {
+  return btree_iterator<T>();
+}
+*/
+
+// cend
+template <typename T> 
+const_btree_iterator<T> btree<T>::cend() const {
+  //return btree<T>::end();
+  
+  //return const_btree_iterator<T>();
+  Node *node = root_;
+  while (node->childExists(node->size())) {
+    node = node->getChild(node->size());
+  }
+  // pos is outside range,
+  return const_btree_iterator<T>(node, node->size());////////////////////NOOOOOO
+}
+
+/*
+// rbegin
+template <typename T> 
+btree_iterator<T> btree<T>::rbegin() {
+  // start at far most right
+  Node *node = root_;
+  while (node->childExists(node->size())) {
+    node = node->getChild(node->size());
+  }
+  
+  
+  std::cout << "rbegin() created()" << endl;
+  return btree_iterator<T>(node, node->size()-1);////////////////////NOOOOOO
+}
+*/
+
+/*
+// rbegin
+template <typename T> 
+reverse_btree_iterator btree<T>::rbegin() {
+  return reverse_iterator(end());
+}
+*/
+
+/*
+// rend
+template <typename T> 
+btree_iterator<T> btree<T>::rend() {
+  return btree_iterator<T>();
+}
+*/
+
+/*
+// rend
+template <typename T> 
+reverse_btree_iterator btree<T>::rend() {
+  return reverse_iterator(begin());
+}
+*/
+
+/*
+// crbegin
+template <typename T> 
+const_reverse_btree_iterator btree<T>::crbegin() const {
+  return const_reverse_iterator(cend());
+}
+*/
+
+/*
+// crend
+template <typename T> 
+const_reverse_btree_iterator btree<T>::crend() const {
+  return const_reverse_iterator(cbegin());
+}
+*/
+
+
+
+// find
+template <typename T> 
+btree_iterator<T> btree<T>::find(const T& elem) {
+
+  
+  if (root_->nodeContains(elem)) {
+    return btree_iterator<T>(root_);
+  }
+
+  else {
+
+    // if node is leaf, elem must not exist
+    if (root_->isLeaf()) {
+      return this->end();
+
+    }
+    // else keep searching
+    else {
+
+      Node *currNode = root_;
+      Node *nextNode = root_;
+      int pos = root_->childPosition(elem); 
+////      std::cout << "pos: " << pos << endl;
+      //if (currNode->childExists(pos)) {
+      while (currNode->childExists(pos)) {
+        nextNode = currNode->getChild(pos);
+////        std::cout << "nextNode size: " << nextNode->size() << endl;
+        if (nextNode->nodeContains(elem)) {
+          return btree_iterator<T>(nextNode);
+        }
+        else {
+          currNode = nextNode;
+        }
+      }
+      // if no child, elem must not exist 
+      //else {
+        return this->end();
+      //}
+    }
+  }
+
+  return this->end();
+  
+}
+
+// find
+template <typename T> 
+const_btree_iterator<T> btree<T>::find(const T& elem) const {
+
+  if (root_->nodeContains(elem)) {
+    return const_btree_iterator<T>(root_);
+  }
+
+  else {
+
+    // if node is leaf, elem must not exist
+    if (root_->isLeaf()) {
+      return this->cend();
+
+    }
+    // else keep searching
+    else {
+
+      Node *currNode = root_;
+      Node *nextNode = root_;
+      int pos = root_->childPosition(elem); 
+////      std::cout << "pos: " << pos << endl;
+      //if (currNode->childExists(pos)) {
+      while (currNode->childExists(pos)) {
+        nextNode = currNode->getChild(pos);
+////        std::cout << "nextNode size: " << nextNode->size() << endl;
+        if (nextNode->nodeContains(elem)) {
+          return const_btree_iterator<T>(nextNode);
+        }
+        else {
+          currNode = nextNode;
+        }
+      }
+      // if no child, elem must not exist 
+      //else {
+        return this->cend();
+      //}
+    }
+  }
+
+  return this->cend();
+
+}
+
+// insert
+template <typename T> 
+std::pair<btree_iterator<T>, bool> btree<T>::insert(const T& elem) {
+
+/* 1. Find  T& elem
+   2. If found then do nothing, return false
+   3. If NOT found, iter->values[count] = elem?
+
+
+*/
+
+  btree_iterator<T> iter = find(elem);
+  // if elem not in tree, insert
+
+  if (iter == end() ) { //&& root_->size() < maxNodeElems_
+////    std::cout << "Insert: " << elem << endl;
+    Node * node = findCorrectNode(elem);
+    // if node full, insert elem into a new child
+    if (node->size() == maxNodeElems_) {
+      int pos = node->childPosition(elem); 
+      node->addChild(pos, elem);
+////      node->getChild(pos)->printNode();
+      return std::make_pair(btree_iterator<T>(node->getChild(pos)),true);
+    }
+    else {
+      node->insert(elem);
+      node->count_++; // need this?
+////      std::cout << "node->count_ now: " << node->count_ << endl;
+////      std::cout << "set size: " << node->size() << endl;
+////      node->printNode();
+      return std::make_pair(btree_iterator<T>(node),true);
+    }
+
+  }
+  else {
+    return std::make_pair(iter,false);
+  }
+  //if (root_->nodeContains(elem)) {
+    
+  //}
+
+  // if elem already in tree
+  //if (elems_.count(elem) == 1)
+  //root_->elems_.insert(elem);
+  //if (root_
+//////////////////////////////
+/*
+  if (root_->count_ >= maxNodeElems_) {
+    cout << "ROOT FULL" << endl;
+    return std::make_pair(btree_iterator<T>(root_),false);
+  }
+  else {
+    root_->values_[root_->count_] = elem;
+    std::cout << "Insert: " << elem << endl;
+    root_->count_++;
+    std::cout << "root_->count_ now: " << root_->count_ << endl;
+
+    //int array[] = { 23, 5, -10, 0, 0, 321, 1, 2, 99, 30 };
+    //int elements = sizeof(root_->values_) / sizeof(root_->values_[0]); 
+    std::sort(root_->values_, root_->values_ + root_->count_);
+    //for (int i = 0; i < elements; ++i) {
+    //   std::cout << root_->values_[i] << ' ';
+   // }
+    //std::cout << endl;
+
+    root_->printNode();
+    
+    //root_->addChild();
+  }
+*/
+////////////////////
+  return std::make_pair(btree_iterator<T>(root_),true);
+}
+
+
+
+
+

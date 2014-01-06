@@ -1,0 +1,160 @@
+// Your implementation for the record class goes here.
+
+template <class value>
+Record<value>::Record() { 
+}
+
+template <class value>
+Record<value>::~Record() { 
+}
+
+template <class value>
+ostream& operator<<(ostream& out, const Record<value>& r)
+{
+  out << "{" << std::endl;
+  for (auto it = r.pairs_.begin(); it != r.pairs_.end(); ++it) {
+    out << "  " << (*it).first << " = " << (*it).second << std::endl;
+  }
+  out << "}" << std::endl;
+  return out;
+}
+
+inline void ReadFieldname(istream& in, string& fieldname)
+{
+  getline(in, fieldname, '=');
+  TrimString(fieldname);
+}
+
+template <class value>
+inline void ReadValue(istream& in, value& val)
+{
+  in >> val;
+}
+
+template <>
+inline void ReadValue<string>(istream& in, string& val)
+{
+  getline(in, val, '\n');
+  TrimString(val);
+}
+
+template <class value>
+istream& operator>>(istream &in, Record<value> &r) {
+
+  if (in.peek() != '{') { 		// bail if not at record start
+    in.setstate(ios::failbit);  	// set stream failure, so we can detect it
+    return in; 
+  }
+  
+  in.ignore(1024, '\n');
+
+  while (true) {
+    std::string line;
+    getline(in, line, '\n');
+    istringstream istr(line.c_str());
+    if (istr.peek() == '}') break;
+    std::pair<string, value> entry;
+    ReadFieldname(istr, entry.first);
+    ReadValue(istr, entry.second);
+    r.pairs_.push_back(entry);
+  }
+  return in; 
+}
+
+// isSelected
+template <class value>
+bool Record<value>::isSelected() const {
+  return selected_;
+}
+
+// setSelected
+template <class value>
+void Record<value>::setSelected(bool val) {
+  selected_ = val;
+}
+
+// matchesQuery
+template <class value>
+bool Record<value>::matchesQuery(const string& attr, DBQueryOperator op,
+const value& want) const {
+
+  bool matched = false;
+  
+  switch(op) {
+  case Equal: 
+    if (attr == "*") {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).second == want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    }
+    else {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).first == attr && (*it).second == want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    }
+    break;
+
+  case NotEqual: 
+    if (attr == "*") {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).second != want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    }
+    else {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).first == attr && (*it).second != want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    } 
+    break;
+
+  case LessThan:  
+    if (attr == "*") {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).second < want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    } else {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).first == attr && (*it).second < want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    }
+    break;
+
+  case GreaterThan: 
+    if (attr == "*") {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).second > want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    } 
+    else {
+      for (auto it = pairs_.begin(); it != pairs_.end(); ++it) {
+        if ( (*it).first == attr && (*it).second > want ) {
+          matched = true; // found match
+          break; // exit early
+        }
+      } 
+    } 
+    break;
+  }
+  return matched;
+}

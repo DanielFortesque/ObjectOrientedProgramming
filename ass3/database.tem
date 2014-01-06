@@ -1,0 +1,214 @@
+// Your implementation for the database class goes here.
+
+template <class value>
+Database<value>::Database() { 
+}
+
+template <class value>
+Database<value>::~Database() { 
+}
+
+// numRecords
+template <class value>
+int Database<value>::numRecords() const {
+  return records_.size(); // return total number of records
+}
+
+// numSelected
+template <class value>
+int Database<value>::numSelected() const {
+  return numSelected_; // return number of selected (true) records
+}
+
+// write
+template <class value>
+void Database<value>::write(ostream& out, DBScope scope) const {
+  
+  switch(scope) {
+  case AllRecords: 
+    for (auto it = records_.begin(); it != records_.end(); ++it) {
+      out << *it;
+    }
+    break;
+
+  case SelectedRecords: 
+    if (numSelected() == 0) {
+      out << "No records selected" << endl;
+    }
+    else {
+      for (auto it = records_.begin(); it != records_.end(); ++it) {
+        if ( (*it).isSelected() ) {
+          out << *it;
+        }
+      }
+    }
+    break;
+  }
+}
+
+// read
+template <class value>
+void Database<value>::read(istream& in) {
+  // first delete all records in database
+  deleteRecords(AllRecords);
+  // now read in new records
+
+  bool newRecord = false;
+  Record<value> r; 
+
+  //in.ignore(1024, '\n');
+    
+  if (in.peek() != '{') { 		// bail if not at record start
+      in.setstate(ios::failbit);  	// set stream failure, so we can detect it
+  }
+
+  while (true && !in.eof()) {
+    
+    std::string line;
+    getline(in, line, '\n');
+    istringstream istr(line.c_str());
+    if (istr.peek() == '{') { 
+      newRecord = true; // now start creating the attribute-value pairs
+    }
+    else if (istr.peek() == '}') { 
+      records_.push_back(r); // put new Record in Database
+      r.pairs_.clear();      // clear this temp Record
+      newRecord = false;     // now wait for the next '{'
+    }
+    else if (newRecord) {
+      std::pair<string, value> entry;
+      ReadFieldname(istr, entry.first);
+      ReadValue(istr, entry.second);
+      r.pairs_.push_back(entry);
+    }
+  }
+}
+
+// deleteRecords
+template <class value>
+void Database<value>::deleteRecords(DBScope scope) {
+
+  switch(scope) {
+  case AllRecords: 
+    records_.clear();
+    numSelected_ = 0;
+    break;
+
+  case SelectedRecords: 
+  {  
+    auto it = records_.begin();
+    while (it != records_.end()) {
+      if ( (*it).isSelected() ) {
+        it = records_.erase(it);
+        if (numSelected_ > 0) numSelected_--;
+      }
+      else {
+        ++it; // increment iterator if records_ was NOT shifted
+      }
+    }
+    break;
+  }
+  }
+
+}
+
+// selectAll
+template <class value>
+void Database<value>::selectAll() {
+  // for each record make 'selected' = true
+  for (auto it = records_.begin(); it != records_.end(); ++it) {
+    (*it).setSelected(true);
+  }
+  numSelected_ = records_.size();
+}
+
+// deselectAll
+template <class value>
+void Database<value>::deselectAll() {
+  // for each record make 'selected_' = false
+  for (auto it = records_.begin(); it != records_.end(); ++it) {
+    (*it).setSelected(false);
+  }
+  numSelected_ = 0;
+}
+
+// select
+template <class value>
+void Database<value>::select(DBSelectOperation selOp, const string& attr,
+DBQueryOperator op, const value& val) {
+
+  switch(selOp) {
+  case All:
+  {
+    // select all records
+    for (auto it = records_.begin(); it != records_.end(); ++it) {
+      (*it).setSelected(true);
+    }
+    numSelected_ = numRecords();
+    break;
+  }
+    
+  case Clear:
+  {
+    // deselect all records
+    for (auto it = records_.begin(); it != records_.end(); ++it) {
+      (*it).setSelected(false);
+    }
+    numSelected_ = 0;
+    break;
+  }
+
+  case Add:
+  {
+    for (auto it = records_.begin(); it != records_.end(); ++it) {
+      // select records that match
+      if ((*it).matchesQuery(attr, op, val)) {
+        // if not selected select it
+        if (!(*it).isSelected()) {
+          (*it).setSelected(true);
+          numSelected_++;
+        } 
+      }
+    }
+    break;
+  }
+
+  case Remove:
+  {
+    for (auto it = records_.begin(); it != records_.end(); ++it) {
+      // remove matched records from selection
+      if ((*it).matchesQuery(attr, op, val)) {
+        // if selected deselect it
+        if ((*it).isSelected()) {
+          (*it).setSelected(false);
+          numSelected_--;
+        }
+      }
+    }  
+    break;
+  }
+
+  case Refine:
+  {
+    for (auto it = records_.begin(); it != records_.end(); ++it) {
+      // add matched records from selection
+      if ((*it).matchesQuery(attr, op, val)) {
+        // if not selected select it
+        if (!(*it).isSelected()) {
+          numSelected_++;
+        } 
+        (*it).setSelected(true);
+      }
+      // remove non matching records
+      else {
+        // if selected deselect it
+        if ((*it).isSelected()) {
+          numSelected_--;
+        }
+        (*it).setSelected(false);
+      }
+    }  
+    break;
+  }
+  }
+}

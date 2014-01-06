@@ -1,0 +1,668 @@
+
+// your btree iterator implementation goes here
+
+// prefix ++
+template <typename T>
+btree_iterator<T>& btree_iterator<T>::operator++() {
+
+  if (pos_ == pointee_->size()+1) {
+////    std::cout << "SHOULD BE AT END " << endl;
+    //pos_--;
+    //return *this;
+  }
+  
+/*
+  // if child exists at left of current VALUE
+  if (pointee_->childExists(pos_)) {
+    pointee_ = pointee_->getChild(pos_);
+    childNum_ = pos_;
+    pos_ = 0;
+    
+  }
+*/
+
+
+////  std::cout << "pos: " << pos_ << endl;
+  if (pos_ == (pointee_->size()-1) && !(pointee_->childExists(pos_+1))) {
+    if (pointee_->hasParent ()) {
+      pos_ = pointee_->getChildNum();
+      
+      ////std::cout << "ChildNum: " << pos_ << endl;
+      pointee_ = pointee_->getParent();
+  
+      while (pos_ == (pointee_->size()) && pointee_->hasParent()) {
+        pos_ = pointee_->getChildNum();
+        pointee_ = pointee_->getParent();
+      }
+
+      // if parent has been fully printed, then we're done
+      if (pos_ == pointee_->size() && !(pointee_->hasParent())) {
+////        pointee_ = nullptr;
+        pos_++;
+      }
+      else {
+        //std::cout << "pos: " << pos_ << endl;
+      }
+////      std::cout << "ChildNum: " << pos_ << endl;
+    }
+    else {
+////      pointee_ = nullptr;
+      pos_++;
+    }
+  } 
+  //check LEFTMOST child of (pos_+1)
+  // else pointee is just (pos_+1)
+  else if (pos_ < pointee_->size()) {
+////    std::cout << "pos_ < pointee_->size()" << endl;
+    //std::cout << "pointee_->childExists(pos_):" << pointee_->childExists(pos_)<< endl;
+    pos_++;
+    //std::cout << "pointee_->childExists(pos_):" << pointee_->childExists(pos_)<< endl;
+    //bool childExists = pointee_->childExists(pos_);
+    //std::cout << "childExists: " << childExists << endl;
+    //if (childExists) {
+    if (pointee_->childExists(pos_)) {
+////      std::cout << "pointee_->childExists(pos_)" << endl;
+      pointee_ = pointee_->getChild(pos_);
+      pos_ = 0;
+      while (pointee_->childExists(0)) {
+        pointee_ = pointee_->getChild(0);
+      }
+////      std::cout << "Got the child" << endl;
+    }
+    // if no child and at end of node
+    else if (pos_ == pointee_->size()) {
+////      pointee_ = nullptr;
+      pos_++;
+    }
+
+  }
+  else if (pos_ == pointee_->size()) {
+////    pointee_ = nullptr;
+    pos_++;
+    //pos_ = pointee_->getChildNum();
+    //pointee_ = pointee_->getParent();
+
+/*
+    //check chil
+    //if no child go to parent
+    //pos_ = childNum_;
+*/
+  }
+
+
+  else {
+////    std::cout << "else pos_++" << endl;
+    pos_++;
+    if (pointee_->childExists(pos_)) {
+      pointee_ = pointee_->getChild(pos_);
+      while (pointee_->childExists(0)) {
+        pointee_ = pointee_->getChild(0);
+      }
+    }
+    else if (pos_ == (pointee_->size())) {
+
+    }
+    // if out of bounds of node, need to go to parent
+    else if (pos_ == (pointee_->size() + 1)) {
+      pointee_ = pointee_->getParent();
+      //pos_ = childNum_;
+    }
+
+    
+
+/*
+    if (pos_ == (pointee_->size())) {
+      // if at last value of node, check children to the right
+      if (pointee_->childExists(pos_)) {
+        pointee_ = pointee_->getChild(pos_);
+      }
+      else {
+        pointee_ = NULL; // ???
+      }
+    }
+*/
+  }
+/*
+
+  // if at last value of node
+  if (pos_ == (pointee_->size() - 1)) {
+    pos_ = 0;
+    // Now look at children
+    // if no Children
+    if (pointee_->isLeaf()) {
+      if (pointee_->hasParent()) {
+        
+      }
+      else {
+       return end(); 
+      }
+    }
+    for (size_t i = childNum_; i <= pointee_->size(); ++i) {
+      if (pointee_->childExists(i)) {
+        typename btree<T>::Node *nextNode = pointee_->getChild(i);
+        childNum_ = i;
+        pointee_ = nextNode;
+        return *this;
+      }
+    }
+    // if no children
+    // Pointer now points to different node
+    if (pointee_->hasParent()) {
+      
+    }
+    else {
+
+    // look at children
+    }
+    typename btree<T>::Node *nextNode = pointee_->parent();
+  }
+  else {
+    pos_++;
+  }
+*/
+/*
+  for (size_t i = 0; i <= pointee_->size(); ++i) {
+    if (pointee_->childExists(i)) {
+      return 
+    }
+  }
+*/
+////  std::cout << "return this: " << endl;
+  return *this;
+}
+
+// prefix --
+template <typename T>
+btree_iterator<T>& btree_iterator<T>::operator--() {
+
+  if (pos_ == pointee_->size()) {
+    pos_--;
+    return *this;
+  }
+
+
+////  std::cout << "pos: " << pos_ << endl;
+  // Handle when pos is last element of node and no child dangling to the right
+  //if (pos_ == (pointee_->size()-1) && !(pointee_->childExists(pos_+1))) {
+  if (pos_ == 0) {
+    
+    if (pointee_->childExists(0)) {
+      pointee_ = pointee_->getChild(pos_);
+      pos_ = pointee_->size();
+      while (pointee_->childExists(pointee_->size())) {
+        pointee_ = pointee_->getChild(pointee_->size());
+      }
+      pos_--;
+////      std::cout << "pos = 0, child at 0 " << endl;
+    }
+    else {
+      if (pointee_->hasParent()) {
+        pos_ = pointee_->getChildNum();
+        pointee_ = pointee_->getParent();
+        while (pos_ == 0 && (pointee_->hasParent())) {
+          pos_ = pointee_->getChildNum();
+          pointee_ = pointee_->getParent();
+        }
+        if (pos_ == 0 && !(pointee_->hasParent())) {//////////////////////////////
+          pointee_ = nullptr;
+        }
+        else {
+          pos_--;
+        }
+      }
+      else {
+        pointee_ = nullptr;
+      }
+    }
+/*
+    if (pointee_->hasParent ()) {
+      pos_ = pointee_->getChildNum();
+      
+////      std::cout << "ChildNum: " << pos_ << endl;
+      pointee_ = pointee_->getParent();
+      // if parent has been fully printed, then we're done
+      if (pos_ == pointee_->size()) {
+        pointee_ = nullptr;
+      }
+////      std::cout << "ChildNum: " << pos_ << endl;
+    }
+    else {
+      pointee_ = nullptr;
+    }
+  } 
+*/
+  // Handle pos 0....end
+  //else if (pos_ < pointee_->size()) {
+  }
+  else if (pos_ > 0) {
+  
+////   std::cout << "pos_ < pointee_->size()" << endl;
+    //pos_--;
+    if (pointee_->childExists(pos_)) {
+////      std::cout << "pointee_->childExists(pos_)" << endl;
+      pointee_ = pointee_->getChild(pos_);
+      //pos_ = 0;
+      pos_ = pointee_->size();
+      while (pointee_->childExists(pointee_->size())) {
+        pointee_ = pointee_->getChild(pointee_->size());
+      }
+////      std::cout << "Got the child" << endl;
+      pos_--;
+    }
+    else {
+      pos_--;
+    }
+    // if no child and at end of node
+    //else if (pos_ == pointee_->size()) {
+    //  pointee_ = nullptr;
+    //}
+
+  }
+  else if (pos_ == pointee_->size()) {
+    pointee_ = nullptr;
+  }
+
+
+  else {
+////    std::cout << "else pos_++" << endl;
+    pos_++;
+    if (pointee_->childExists(pos_)) {
+      pointee_ = pointee_->getChild(pos_);
+      while (pointee_->childExists(0)) {
+        pointee_ = pointee_->getChild(0);
+      }
+    }
+    else if (pos_ == (pointee_->size())) {
+
+    }
+    // if out of bounds of node, need to go to parent
+    else if (pos_ == (pointee_->size() + 1)) {
+      pointee_ = pointee_->getParent();
+    }
+  }
+
+////  std::cout << "return this: " << endl;
+  return *this;
+}
+
+// postfix ++ takes int as argument
+template <typename T>
+btree_iterator<T> btree_iterator<T>::operator++(int) {
+  btree_iterator<T> tmp = *this;
+  ++(*this);
+  return tmp;
+}
+
+// postfix -- takes int as argument
+template <typename T>
+btree_iterator<T> btree_iterator<T>::operator--(int) {
+  btree_iterator<T> tmp = *this;
+  --(*this);
+  return tmp;
+}
+
+
+
+template <typename T> typename btree_iterator<T>::reference
+btree_iterator<T>::operator*() const {
+  //typename std::set<T>::iterator it = pointee_->elems_.cbegin();
+  //typename set<T>::iterator it = pointee_->elems_.begin();
+  //std::cout << "it is " << *it << std::endl;
+  //auto t = *it;
+  //return *(pointee_->elems_.begin());
+  //return pointee_->elems_.begin();
+  //std::cout << "POS: " << pos_ << std::endl;
+  return pointee_->valueAt(pos_);
+}
+
+template <typename T>
+bool btree_iterator<T>::operator==(const btree_iterator<T>& other) const {
+  bool equal;
+  if ((this->pointee_ == other.pointee_) && (this->pos_ == other.pos_)) {
+    equal = true;
+  }
+  else {
+    equal = false;
+  }
+  return equal;
+}
+
+template <typename T>
+bool btree_iterator<T>::operator==(const const_btree_iterator<T>& other) const {
+  bool equal;
+  if ((this->pointee_ == other.pointee_) && (this->pos_ == other.pos_)) {
+    equal = true;
+  }
+  else {
+    equal = false;
+  }
+  return equal;
+}
+
+
+////////////////////////////////////////////////////////////
+
+//               CONST ITERATOR STUFF
+
+////////////////////////////////////////////////////////////
+
+
+
+// prefix ++
+template <typename T>
+const_btree_iterator<T>& const_btree_iterator<T>::operator++() {
+
+  if (pos_ == (pointee_->size()-1) && !(pointee_->childExists(pos_+1))) {
+    if (pointee_->hasParent ()) {
+      pos_ = pointee_->getChildNum();
+      
+      ////std::cout << "ChildNum: " << pos_ << endl;
+      pointee_ = pointee_->getParent();
+  
+      while (pos_ == (pointee_->size()) && pointee_->hasParent()) {
+        pos_ = pointee_->getChildNum();
+        pointee_ = pointee_->getParent();
+      }
+
+      // if parent has been fully printed, then we're done
+      if (pos_ == pointee_->size() && !(pointee_->hasParent())) {
+////        pointee_ = nullptr;
+        pos_++;
+      }
+      else {
+        //std::cout << "pos: " << pos_ << endl;
+      }
+////      std::cout << "ChildNum: " << pos_ << endl;
+    }
+    else {
+////      pointee_ = nullptr;
+      pos_++;
+    }
+  } 
+  //check LEFTMOST child of (pos_+1)
+  // else pointee is just (pos_+1)
+  else if (pos_ < pointee_->size()) {
+////    std::cout << "pos_ < pointee_->size()" << endl;
+    //std::cout << "pointee_->childExists(pos_):" << pointee_->childExists(pos_)<< endl;
+    pos_++;
+    //std::cout << "pointee_->childExists(pos_):" << pointee_->childExists(pos_)<< endl;
+    //bool childExists = pointee_->childExists(pos_);
+    //std::cout << "childExists: " << childExists << endl;
+    //if (childExists) {
+    if (pointee_->childExists(pos_)) {
+////      std::cout << "pointee_->childExists(pos_)" << endl;
+      pointee_ = pointee_->getChild(pos_);
+      pos_ = 0;
+      while (pointee_->childExists(0)) {
+        pointee_ = pointee_->getChild(0);
+      }
+////      std::cout << "Got the child" << endl;
+    }
+    // if no child and at end of node
+    else if (pos_ == pointee_->size()) {
+////      pointee_ = nullptr;
+      pos_++;
+    }
+
+  }
+  else if (pos_ == pointee_->size()) {
+////    pointee_ = nullptr;
+    pos_++;
+    //pos_ = pointee_->getChildNum();
+    //pointee_ = pointee_->getParent();
+
+/*
+    //check chil
+    //if no child go to parent
+    //pos_ = childNum_;
+*/
+  }
+
+
+  else {
+////    std::cout << "else pos_++" << endl;
+    pos_++;
+    if (pointee_->childExists(pos_)) {
+      pointee_ = pointee_->getChild(pos_);
+      while (pointee_->childExists(0)) {
+        pointee_ = pointee_->getChild(0);
+      }
+    }
+    else if (pos_ == (pointee_->size())) {
+
+    }
+    // if out of bounds of node, need to go to parent
+    else if (pos_ == (pointee_->size() + 1)) {
+      pointee_ = pointee_->getParent();
+      //pos_ = childNum_;
+    }
+
+    
+
+/*
+    if (pos_ == (pointee_->size())) {
+      // if at last value of node, check children to the right
+      if (pointee_->childExists(pos_)) {
+        pointee_ = pointee_->getChild(pos_);
+      }
+      else {
+        pointee_ = NULL; // ???
+      }
+    }
+*/
+  }
+/*
+
+  // if at last value of node
+  if (pos_ == (pointee_->size() - 1)) {
+    pos_ = 0;
+    // Now look at children
+    // if no Children
+    if (pointee_->isLeaf()) {
+      if (pointee_->hasParent()) {
+        
+      }
+      else {
+       return end(); 
+      }
+    }
+    for (size_t i = childNum_; i <= pointee_->size(); ++i) {
+      if (pointee_->childExists(i)) {
+        typename btree<T>::Node *nextNode = pointee_->getChild(i);
+        childNum_ = i;
+        pointee_ = nextNode;
+        return *this;
+      }
+    }
+    // if no children
+    // Pointer now points to different node
+    if (pointee_->hasParent()) {
+      
+    }
+    else {
+
+    // look at children
+    }
+    typename btree<T>::Node *nextNode = pointee_->parent();
+  }
+  else {
+    pos_++;
+  }
+*/
+/*
+  for (size_t i = 0; i <= pointee_->size(); ++i) {
+    if (pointee_->childExists(i)) {
+      return 
+    }
+  }
+*/
+////  std::cout << "return this: " << endl;
+  return *this;
+}
+
+
+// prefix --
+template <typename T>
+const_btree_iterator<T>& const_btree_iterator<T>::operator--() {
+
+  if (pos_ == pointee_->size()) {
+    pos_--;
+    return *this;
+  }
+
+  if (pos_ == 0) {
+    
+    if (pointee_->childExists(0)) {
+      pointee_ = pointee_->getChild(pos_);
+      pos_ = pointee_->size();
+      while (pointee_->childExists(pointee_->size())) {
+        pointee_ = pointee_->getChild(pointee_->size());
+      }
+      pos_--;
+////      std::cout << "pos = 0, child at 0 " << endl;
+    }
+    else {
+      if (pointee_->hasParent()) {
+        pos_ = pointee_->getChildNum();
+        pointee_ = pointee_->getParent();
+        while (pos_ == 0 && (pointee_->hasParent())) {
+          pos_ = pointee_->getChildNum();
+          pointee_ = pointee_->getParent();
+        }
+        if (pos_ == 0 && !(pointee_->hasParent())) {//////////////////////////////
+          pointee_ = nullptr;
+        }
+        else {
+          pos_--;
+        }
+      }
+      else {
+        pointee_ = nullptr;
+      }
+    }
+/*
+    if (pointee_->hasParent ()) {
+      pos_ = pointee_->getChildNum();
+      
+////      std::cout << "ChildNum: " << pos_ << endl;
+      pointee_ = pointee_->getParent();
+      // if parent has been fully printed, then we're done
+      if (pos_ == pointee_->size()) {
+        pointee_ = nullptr;
+      }
+////      std::cout << "ChildNum: " << pos_ << endl;
+    }
+    else {
+      pointee_ = nullptr;
+    }
+  } 
+*/
+  // Handle pos 0....end
+  //else if (pos_ < pointee_->size()) {
+  }
+  else if (pos_ > 0) {
+  
+////   std::cout << "pos_ < pointee_->size()" << endl;
+    //pos_--;
+    if (pointee_->childExists(pos_)) {
+////      std::cout << "pointee_->childExists(pos_)" << endl;
+      pointee_ = pointee_->getChild(pos_);
+      //pos_ = 0;
+      pos_ = pointee_->size();
+      while (pointee_->childExists(pointee_->size())) {
+        pointee_ = pointee_->getChild(pointee_->size());
+      }
+////      std::cout << "Got the child" << endl;
+      pos_--;
+    }
+    else {
+      pos_--;
+    }
+    // if no child and at end of node
+    //else if (pos_ == pointee_->size()) {
+    //  pointee_ = nullptr;
+    //}
+
+  }
+  else if (pos_ == pointee_->size()) {
+    pointee_ = nullptr;
+  }
+
+
+  else {
+////    std::cout << "else pos_++" << endl;
+    pos_++;
+    if (pointee_->childExists(pos_)) {
+      pointee_ = pointee_->getChild(pos_);
+      while (pointee_->childExists(0)) {
+        pointee_ = pointee_->getChild(0);
+      }
+    }
+    else if (pos_ == (pointee_->size())) {
+
+    }
+    // if out of bounds of node, need to go to parent
+    else if (pos_ == (pointee_->size() + 1)) {
+      pointee_ = pointee_->getParent();
+    }
+  }
+
+////  std::cout << "return this: " << endl;
+  return *this;
+
+
+}
+
+
+// postfix ++ takes int as argument
+template <typename T>
+const_btree_iterator<T> const_btree_iterator<T>::operator++(int) {
+  const_btree_iterator<T> tmp = *this;
+  ++(*this);
+  return tmp;
+}
+
+// postfix -- takes int as argument
+template <typename T>
+const_btree_iterator<T> const_btree_iterator<T>::operator--(int) {
+  const_btree_iterator<T> tmp = *this;
+  --(*this);
+  return tmp;
+}
+
+
+template <typename T> typename const_btree_iterator<T>::reference
+const_btree_iterator<T>::operator*() const {
+  //typename std::set<T>::iterator it = pointee_->elems_.cbegin();
+  //typename set<T>::iterator it = pointee_->elems_.begin();
+  //std::cout << "it is " << *it << std::endl;
+  //auto t = *it;
+  //return *(pointee_->elems_.begin());
+  //return pointee_->elems_.begin();
+  return pointee_->valueAt(pos_);
+}
+
+template <typename T>
+bool const_btree_iterator<T>::operator==(const const_btree_iterator<T>& other) const {
+  bool equal;
+  if ((this->pointee_ == other.pointee_) && (this->pos_ == other.pos_)) {
+    equal = true;
+  }
+  else {
+    equal = false;
+  }
+  return equal;
+}
+
+template <typename T>
+bool const_btree_iterator<T>::operator==(const btree_iterator<T>& other) const {
+  bool equal;
+  if ((this->pointee_ == other.pointee_) && (this->pos_ == other.pos_)) {
+    equal = true;
+  }
+  else {
+    equal = false;
+  }
+  return equal;
+}
+
